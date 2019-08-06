@@ -141,7 +141,12 @@ static struct ini_section *ini_config_add_section(INI_CONFIG *config,
     } else {
         section->section = NULL;
     }
-    list_add_tail(&section->section_node, &config->section_node);
+    if (name == NULL) {
+        /* 无名节是配置中的第一节 */
+        list_add(&section->section_node, &config->section_node);
+    } else {
+        list_add_tail(&section->section_node, &config->section_node);
+    }
 
     return section;
 }
@@ -322,7 +327,7 @@ const char *ini_config_get(INI_CONFIG *config, const char *section_name,
     struct ini_section *section;
     struct ini_tag *tag;
 
-    if (section_name == NULL || key == NULL)
+    if (key == NULL)
         return NULL;
 
     section = ini_config_find_section(config, section_name);

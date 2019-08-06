@@ -13,12 +13,19 @@ int main(void)
         return -1;
     }
 
-    ini_config_set(config, "2", "3", "liujiaying hahaha");
-    value = ini_config_get(config, "2", "3", "no name");
+    ini_config_set(config, NULL, "3", "liujiaying hahaha");
+    value = ini_config_get(config, NULL, "3", "no name");
     if (value) {
-        printf("[1:name] = %s\n", value);
+        printf("[:name] = %s\n", value);
     } else {
         printf("invalid operatiobn\n");
+    }
+
+    value = ini_config_get(config, "1", "地址", NULL);
+    if (value) {
+        printf("[1:地址] = %s\n", value);
+    } else {
+        printf("[1:地址] not been set\n");
     }
 
     ini_config_saveas(config, "test1.ini");

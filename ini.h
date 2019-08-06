@@ -18,7 +18,7 @@ extern INI_CONFIG *ini_config_create(const char *const file);
 /**
  * @brief ini_config_get 获取指定字段的值
  * @param config    ini配置
- * @param section   字段所在的节
+ * @param section   字段所在的节, 可以指定NULL, 表示默认的节(没有节名)
  * @param key       字段对应的关键字
  * @param default_value 如果字段没有被设置, 则使用该值作为默认值
  * @return  返回字段的值
@@ -29,7 +29,8 @@ extern const char *ini_config_get(INI_CONFIG *config, const char *section,
 /**
  * @brief ini_config_set 设置指定字段的值
  * @param config    ini配置
- * @param section   字段所在的节
+ * @param section   字段所在的节, 可以指定NULL, 表示默认的节(没有节名),
+ *                  没有节名的节会被设置成配置中的第一节
  * @param key       字段的关键字
  * @param value     字段的设定值
  * @return  设置成功返回0, 设置失败返回-1
