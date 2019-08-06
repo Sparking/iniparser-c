@@ -2,39 +2,68 @@
 
 #include "list.h"
 
-struct ini_tag {
-    char *key;
-    char *value;
-    struct list_head tag_node;
-};
-
-struct ini_section {
-    char *section;
-    struct list_head section_node;
-    struct list_head tag_node;
-};
-
-struct ini_config {
+typedef struct {
     struct list_head section_node;
     char *config_file;
-};
-typedef struct ini_config INI_CONFIG;
+} INI_CONFIG;
 
+/**
+ * @brief ini_config_create 读取ini配置保存到一个数据结构中
+ * @param file      ini配置文件
+ * @return  获取ini配置失败返回NULL, 否则返回一个保存ini配置的数据结构
+ * @note    需要使用函数ini_config_release进行释放数据结构的内存
+ */
 extern INI_CONFIG *ini_config_create(const char *const file);
+
+/**
+ * @brief ini_config_get 获取指定字段的值
+ * @param config    ini配置
+ * @param section   字段所在的节
+ * @param key       字段对应的关键字
+ * @param default_value 如果字段没有被设置, 则使用该值作为默认值
+ * @return  返回字段的值
+ */
 extern const char *ini_config_get(INI_CONFIG *config, const char *section,
     const char *key, const char *default_value);
+
+/**
+ * @brief ini_config_set 设置指定字段的值
+ * @param config    ini配置
+ * @param section   字段所在的节
+ * @param key       字段的关键字
+ * @param value     字段的设定值
+ * @return  设置成功返回0, 设置失败返回-1
+ */
 extern int ini_config_set(INI_CONFIG *config, const char *section,
     const char *key, const char *value);
+
+/**
+ * @brief ini_copnfig_save2filestream 将ini配置保存到文件流中
+ * @param config    ini配置
+ * @param fp        文件流
+ * @return  保存成功返回0, 失败返回-1
+ */
 extern int ini_config_save2filestream(INI_CONFIG *config, FILE *fp);
+
+/**
+ * @brief ini_config_saveas 将ini配置另存到另一个文件中
+ * @param config    ini配置
+ * @param file      保存ini配置的文件名
+ * @return  保存成功返回0, 失败返回-1
+ */
 extern int ini_config_saveas(INI_CONFIG *config, const char *file);
+
+/**
+ * @brief ini_config_save 将ini配置保存到函数ini_config_create打开的文件中
+ * @param config    ini配置
+ * @return  保存成功返回0, 失败返回-1
+ */
 static inline int ini_config_save(INI_CONFIG *config) {
     return ini_config_saveas(config, config->config_file);
 }
+
+/**
+ * @brief ini_config_release 释放ini数据结构的内存
+ * @param config    ini配置
+ */
 extern void ini_config_release(INI_CONFIG *config);
-
-extern struct ini_section *ini_config_add_section(INI_CONFIG *config,
-    const char *name);
-extern struct ini_tag *ini_config_add_tag(struct ini_section *section,
-    const char *key, const char *value);
-
-extern void ini_show(INI_CONFIG *config);

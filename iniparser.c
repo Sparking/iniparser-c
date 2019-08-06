@@ -6,6 +6,18 @@
 
 #define INI_LINE_MAXSIZE    2048
 
+struct ini_tag {
+    char *key;
+    char *value;
+    struct list_head tag_node;
+};
+
+struct ini_section {
+    char *section;
+    struct list_head section_node;
+    struct list_head tag_node;
+};
+
 enum {
     INI_CONFIG_SECTION = 0,
     INI_CONFIG_KEY_VALUE,
@@ -35,7 +47,8 @@ static int ini_parse_line(char *const line, union ini_parse_block *ipb)
         break;
     case '[':
         line_type = INI_CONFIG_SECTION;
-        for (j = i + 1; line[j] != '\0' && line[j] != '\r' && line[j] != '\n'; ++j) {
+        for (j = i + 1; line[j] != '\0' && line[j] != '\r' && line[j] != '\n';
+            ++j) {
             if (line[j] == ']')
                 break;
         }
@@ -48,7 +61,8 @@ static int ini_parse_line(char *const line, union ini_parse_block *ipb)
         break;
     default:
         line_type = INI_CONFIG_KEY_VALUE;
-        for (j = i + 1; line[j] != '\0' && line[j] != '\r' && line[j] != '\n'; ++j) {
+        for (j = i + 1; line[j] != '\0' && line[j] != '\r' && line[j] != '\n';
+            ++j) {
             if (line[j] == '=')
                 break;
         }
@@ -60,13 +74,17 @@ static int ini_parse_line(char *const line, union ini_parse_block *ipb)
                     break;
             }
             line[++j] = '\0';
-            for (i = 0; ipb->kv.value[i] != '\0' && ipb->kv.value[i] != '\r' && ipb->kv.value[i] != '\n'; ++i) {
+            for (i = 0; ipb->kv.value[i] != '\0'
+                    && ipb->kv.value[i] != '\r' && ipb->kv.value[i] != '\n';
+                ++i) {
                 if (!isspace(ipb->kv.value[i])) {
                     ipb->kv.value = ipb->kv.value + i;
                     break;
                 }
             }
-            for (i = 0; ipb->kv.value[i] != '\0' && ipb->kv.value[i] != '\r' && ipb->kv.value[i] != '\n'; ++i) {
+            for (i = 0; ipb->kv.value[i] != '\0'
+                    && ipb->kv.value[i] != '\r' && ipb->kv.value[i] != '\n';
+                ++i) {
                 continue;
             }
             while (i-- > 0)
@@ -82,20 +100,23 @@ static int ini_parse_line(char *const line, union ini_parse_block *ipb)
     return line_type;
 }
 
-static struct ini_section *ini_config_find_section(INI_CONFIG *config, const char *name)
+static struct ini_section *ini_config_find_section(INI_CONFIG *config,
+    const char *name)
 {
     struct ini_section *section;
 
     list_for_each_entry(section, &config->section_node, section_node) {
         if ((name == NULL && section->section == NULL)
-            || (name != NULL && section->section != NULL && strcmp(name, section->section) == 0))
+            || (name != NULL && section->section != NULL
+                && strcmp(name, section->section) == 0))
             return section;
     }
 
     return NULL;
 }
 
-struct ini_section *ini_config_add_section(INI_CONFIG *config, const char *name)
+static struct ini_section *ini_config_add_section(INI_CONFIG *config,
+    const char *name)
 {
     struct ini_section *section;
 
@@ -125,7 +146,8 @@ struct ini_section *ini_config_add_section(INI_CONFIG *config, const char *name)
     return section;
 }
 
-struct ini_tag *ini_config_find_tag(struct ini_section *section, const char *key)
+static struct ini_tag *ini_config_find_tag(struct ini_section *section,
+    const char *key)
 {
     struct ini_tag *tag;
 
@@ -137,7 +159,8 @@ struct ini_tag *ini_config_find_tag(struct ini_section *section, const char *key
     return NULL;
 }
 
-static struct ini_tag *ini_config_create_new_tag(const char *key, const char *value)
+static struct ini_tag *ini_config_create_new_tag(const char *key,
+    const char *value)
 {
     struct ini_tag *tag;
 
@@ -165,7 +188,8 @@ static struct ini_tag *ini_config_create_new_tag(const char *key, const char *va
     return tag;
 }
 
-struct ini_tag *ini_config_add_tag(struct ini_section *section, const char *key, const char *value)
+static struct ini_tag *ini_config_add_tag(struct ini_section *section,
+    const char *key, const char *value)
 {
     struct ini_tag *tag;
 
@@ -179,7 +203,8 @@ struct ini_tag *ini_config_add_tag(struct ini_section *section, const char *key,
             list_add_tail(&tag->tag_node, &section->tag_node);
     } else {
         if ((tag->value == NULL && value == NULL)
-            || (tag->value != NULL && value != NULL && strcmp(tag->value, value) == 0))
+            || (tag->value != NULL && value != NULL
+                && strcmp(tag->value, value) == 0))
             return tag;
         if (tag->value) {
             free(tag->value);
@@ -250,7 +275,8 @@ INI_CONFIG *ini_config_create(const char *const file)
             ini_config_add_tag(current_section, ipb.kv.key, ipb.kv.value);
             /*
             struct ini_tag *current_tag;
-            current_tag = ini_config_add_tag(current_section, ipb.kv.key, ipb.kv.value);
+            current_tag = ini_config_add_tag(current_section, ipb.kv.key,
+                ipb.kv.value);
             if (cuurent_tag == NULL) {
                 ini_config_release(config);
                 return NULL;
@@ -266,7 +292,8 @@ INI_CONFIG *ini_config_create(const char *const file)
     return config;
 }
 
-int ini_config_set(INI_CONFIG *config, const char *section_name, const char *key, const char *value)
+int ini_config_set(INI_CONFIG *config, const char *section_name,
+    const char *key, const char *value)
 {
     struct ini_section *mark;
     struct ini_section *section;
@@ -289,8 +316,8 @@ int ini_config_set(INI_CONFIG *config, const char *section_name, const char *key
     return 0;
 }
 
-const char *ini_config_get(INI_CONFIG *config, const char *section_name, const char *key,
-    const char *default_value)
+const char *ini_config_get(INI_CONFIG *config, const char *section_name,
+    const char *key, const char *default_value)
 {
     struct ini_section *section;
     struct ini_tag *tag;
@@ -370,7 +397,8 @@ void ini_config_release(INI_CONFIG *config)
 
         for (section_node = config->section_node.next;
             section_node != &config->section_node;) {
-            section = list_entry(section_node, struct ini_section, section_node);
+            section = list_entry(section_node, struct ini_section,
+                section_node);
             for (tag_node = section->tag_node.next;
                 tag_node != &section->tag_node;) {
                 tag = list_entry(tag_node, struct ini_tag, tag_node);
