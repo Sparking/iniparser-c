@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "ini.h"
+#include "iniparser.h"
 
 int main(void)
 {

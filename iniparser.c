@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "ini.h"
+#include "iniparser.h"
 
 #define INI_LINE_MAXSIZE    2048
 
