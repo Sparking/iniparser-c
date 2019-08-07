@@ -249,7 +249,7 @@ static struct ini_tag *ini_config_add_tag(struct ini_section *section,
             tag->value = strdup(value);
             if (tag->value == NULL) {
                 list_del(&tag->tag_node);
-                free(tag);
+                ini_config_release_tag(tag);
                 return NULL;
             }
         }
@@ -343,7 +343,7 @@ int ini_config_set(INI_CONFIG *config, const char *section_name,
     if (tag == NULL) {
         if (mark == NULL) {
             list_del(&section->section_node);
-            free(section);
+            ini_config_release_section(section);
         }
         return -1;
     }
