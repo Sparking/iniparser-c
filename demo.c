@@ -29,6 +29,10 @@ int main(void)
     }
 
     ini_config_saveas(config, "test1.ini");
+    ini_config_erase_key(config, "test section 234", "Nassuraw");
+    ini_config_erase_section(config, NULL);
+    ini_config_clear_section(config, "test section123");
+    ini_config_saveas(config, "test2.ini");
     ini_config_release(config);
 
     return 0;

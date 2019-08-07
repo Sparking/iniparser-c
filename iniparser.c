@@ -100,10 +100,38 @@ static int ini_parse_line(char *const line, union ini_parse_block *ipb)
     return line_type;
 }
 
+static int ini_config_release_section(struct ini_section *section)
+{
+    if (section == NULL)
+        return -1;
+
+    if (section->section)
+        free(section->section);
+    free(section);
+
+    return 0;
+}
+
+static int ini_config_release_tag(struct ini_tag *tag)
+{
+    if (tag == NULL)
+        return -1;
+
+    free(tag->key);
+    if (tag->value)
+        free(tag->value);
+    free(tag);
+
+    return 0;
+}
+
 static struct ini_section *ini_config_find_section(INI_CONFIG *config,
     const char *name)
 {
     struct ini_section *section;
+
+    if (config == NULL)
+        return NULL;
 
     list_for_each_entry(section, &config->section_node, section_node) {
         if ((name == NULL && section->section == NULL)
@@ -156,6 +184,9 @@ static struct ini_tag *ini_config_find_tag(struct ini_section *section,
 {
     struct ini_tag *tag;
 
+    if (section == NULL)
+        return NULL;
+
     list_for_each_entry(tag, &section->tag_node, tag_node) {
         if (strcmp(tag->key, key) == 0)
             return tag;
@@ -182,8 +213,7 @@ static struct ini_tag *ini_config_create_new_tag(const char *key,
     if (value) {
         tag->value = strdup(value);
         if (tag->value == NULL) {
-            free(tag->key);
-            free(tag);
+            ini_config_release_tag(tag);
             return NULL;
         }
     } else {
@@ -317,7 +347,7 @@ int ini_config_set(INI_CONFIG *config, const char *section_name,
         }
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -333,34 +363,87 @@ const char *ini_config_get(INI_CONFIG *config, const char *section_name,
     section = ini_config_find_section(config, section_name);
     if (section == NULL)
         return default_value;
-    
+
     tag = ini_config_find_tag(section, key);
     if (tag == NULL || tag->value == NULL)
         return default_value;
-    
+
     return tag->value;
+}
+
+static int ini_config_clear_section_node(struct ini_section *section)
+{
+    struct ini_tag *tag, *tmp_tag;
+
+    if (section == NULL)
+        return -1;
+
+    list_for_each_entry_safe(tag, tmp_tag, &section->tag_node, tag_node) {
+        list_del(&tag->tag_node);
+        ini_config_release_tag(tag);
+    }
+
+    return 0;
+}
+
+int ini_config_clear_section(INI_CONFIG *config, const char *section)
+{
+    return ini_config_clear_section_node(ini_config_find_section(config,
+        section));
+}
+
+static int ini_config_erase_section_node(struct ini_section *section)
+{
+    if (ini_config_clear_section_node(section) == -1)
+        return -1;
+
+    list_del(&section->section_node);
+    ini_config_release_section(section);
+
+    return 0;
+}
+
+int ini_config_erase_section(INI_CONFIG *config, const char *section)
+{
+    return ini_config_erase_section_node(ini_config_find_section(config,
+        section));
+}
+
+int ini_config_erase_key(INI_CONFIG *config, const char *section_name,
+    const char *key)
+{
+    struct ini_section *section;
+    struct ini_tag *tag;
+
+    if (config == NULL || key == NULL)
+        return -1;
+
+    section = ini_config_find_section(config, section_name);
+    if (section == NULL)
+        return -1;
+
+    tag = ini_config_find_tag(section, key);
+    if (tag == NULL)
+        return -1;
+
+    list_del(&tag->tag_node);
+    ini_config_release_tag(tag);
+
+    return 0;
 }
 
 int ini_config_save2filestream(INI_CONFIG *config, FILE *fp)
 {
-    struct list_head *section_node;
-    struct list_head *tag_node;
     struct ini_section *section;
     struct ini_tag *tag;
 
     if (config == NULL || fp == NULL)
         return -1;
 
-    for (section_node = config->section_node.next;
-        section_node != &config->section_node;
-        section_node = section_node->next) {
-        section = list_entry(section_node, struct ini_section, section_node);
+    list_for_each_entry (section, &config->section_node, section_node) {
         if (section->section)
             fprintf(fp, "[%s]\n", section->section);
-        for (tag_node = section->tag_node.next;
-            tag_node != &section->tag_node;
-            tag_node = tag_node->next) {
-            tag = list_entry(tag_node, struct ini_tag, tag_node);
+        list_for_each_entry (tag, &section->tag_node, tag_node) {
             if (tag->value) {
                 fprintf(fp, "%s = %s\n", tag->key, tag->value);
             } else {
@@ -381,47 +464,33 @@ int ini_config_saveas(INI_CONFIG *config, const char *file)
     fp = fopen(file, "w");
     if (fp == NULL)
         return -1;
-    
+
     ret = ini_config_save2filestream(config, fp);
     fclose(fp);
 
     return ret;
 }
 
+int ini_config_clear(INI_CONFIG *config)
+{
+    struct ini_section *section, *temp_section;
+
+    if (config == NULL)
+        return -1;
+
+    list_for_each_entry_safe(section, temp_section,
+        &config->section_node, section_node) {
+        ini_config_erase_section_node(section);
+    }
+
+    return 0;
+}
+
 void ini_config_release(INI_CONFIG *config)
 {
-    if (config != NULL) {
-        struct list_head *section_node;
-        struct list_head *tag_node;
-        struct list_head *temp_ptr;
-        struct ini_section *section;
-        struct ini_tag *tag;
-
+    if (ini_config_clear(config) == 0) {
         if (config->config_file)
             free(config->config_file);
-
-        for (section_node = config->section_node.next;
-            section_node != &config->section_node;) {
-            section = list_entry(section_node, struct ini_section,
-                section_node);
-            for (tag_node = section->tag_node.next;
-                tag_node != &section->tag_node;) {
-                tag = list_entry(tag_node, struct ini_tag, tag_node);
-                free(tag->key);
-                if (tag->value)
-                    free(tag->value);
-                temp_ptr = tag_node->next;
-                list_del(tag_node);
-                free(tag);
-                tag_node = temp_ptr;
-            }
-            if (section->section)
-                free(section->section);
-            temp_ptr = section_node->next;
-            list_del(section_node);
-            free(section);
-            section_node = temp_ptr;
-        }
         free(config);
     }
 }

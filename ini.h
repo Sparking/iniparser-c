@@ -39,6 +39,39 @@ extern int ini_config_set(INI_CONFIG *config, const char *section,
     const char *key, const char *value);
 
 /**
+ * @brief ini_config_clear_section 清空配置中指定的节
+ * @param config    ini配置
+ * @param section   节, NULL表示无名节
+ * @return  清空成功返回0, 失败返回-1
+ */
+extern int ini_config_clear_section(INI_CONFIG *config, const char *section);
+
+/**
+ * @brief ini_config_clear 清空配置
+ * @param config    ini配置
+ * @return  清空成功返回0, 失败返回-1
+ */
+extern int ini_config_clear(INI_CONFIG *config);
+
+/**
+ * @brief ini_config_erase_section 删除配置中指定的节
+ * @param config    ini配置
+ * @param section   节, NULL表示无名节
+ * @return  删除成功返回0, 失败返回-1
+ */
+extern int ini_config_erase_section(INI_CONFIG *config, const char *section);
+
+/**
+ * @brief ini_config_erase_key 删除配置中指定的节中的关键字
+ * @param config    ini配置
+ * @param section   节, NULL表示无名节
+ * @param key       关键字
+ * @return  删除成功返回0, 失败返回-1
+ */
+extern int ini_config_erase_key(INI_CONFIG *config, const char *section,
+    const char *key);
+
+/**
  * @brief ini_copnfig_save2filestream 将ini配置保存到文件流中
  * @param config    ini配置
  * @param fp        文件流
