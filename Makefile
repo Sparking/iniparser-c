@@ -2,17 +2,17 @@ CROSS_COMPILE :=
 AR       := $(CROSS_COMPILE)ar
 RANLIB   := $(CROSS_COMPILE)ranlib
 CC       := $(CROSS_COMPILE)gcc
-CFLAGS   := -g -O2
+CFLAGS   := -g -O0
 CPPFLAGS := -Wall -Werror -std=gnu99 -I$(CURDIR) -MMD
 LDFLAGS  := -L$(CURDIR)
 LIBS     :=
 
 DEMO_SRC := demo.c
 DEMO_OBJS:= $(patsubst %.c,%.o,$(DEMO_SRC))
-DEMO_DEPS:= $(patsubst %.c,%.d,$(SRC))
+DEMO_DEPS:= $(patsubst %.c,%.d,$(DEMO_SRC))
 DEMO_LIBS := -liniparser
 
-LIB_SRC  := iniparser.c
+LIB_SRC  := iniparser.c rbtree.c
 LIB_OBJS := $(patsubst %.c,%.o,$(LIB_SRC))
 LIB_DEPS := $(patsubst %.c,%.d,$(LIB_SRC))
 LIB_OUT  := libiniparser.a

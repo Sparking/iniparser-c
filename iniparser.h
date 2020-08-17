@@ -1,11 +1,7 @@
-#pragma once
+#ifndef __INIPARSER_C_H__
+#define __INIPARSER_C_H__
 
-#include "list.h"
-
-typedef struct {
-    struct list_head section_node;
-    char *config_file;
-} INI_CONFIG;
+typedef void *INI_CONFIG;
 
 /**
  * @brief ini_config_create 读取ini配置保存到一个数据结构中
@@ -13,7 +9,7 @@ typedef struct {
  * @return  获取ini配置失败返回NULL, 否则返回一个保存ini配置的数据结构
  * @note    需要使用函数ini_config_release进行释放数据结构的内存
  */
-extern INI_CONFIG *ini_config_create(const char *const file);
+extern INI_CONFIG ini_config_create(const char *const file);
 
 /**
  * @brief ini_config_get 获取指定字段的值
@@ -23,7 +19,7 @@ extern INI_CONFIG *ini_config_create(const char *const file);
  * @param default_value 如果字段没有被设置, 则使用该值作为默认值
  * @return  返回字段的值
  */
-extern const char *ini_config_get(INI_CONFIG *config, const char *section,
+extern const char *ini_config_get(INI_CONFIG config, const char *section,
     const char *key, const char *default_value);
 
 /**
@@ -35,7 +31,7 @@ extern const char *ini_config_get(INI_CONFIG *config, const char *section,
  * @param value     字段的设定值
  * @return  设置成功返回0, 设置失败返回-1
  */
-extern int ini_config_set(INI_CONFIG *config, const char *section,
+extern int ini_config_set(INI_CONFIG config, const char *section,
     const char *key, const char *value);
 
 /**
@@ -44,14 +40,14 @@ extern int ini_config_set(INI_CONFIG *config, const char *section,
  * @param section   节, NULL表示无名节
  * @return  清空成功返回0, 失败返回-1
  */
-extern int ini_config_clear_section(INI_CONFIG *config, const char *section);
+extern int ini_config_clear_section(INI_CONFIG config, const char *section);
 
 /**
  * @brief ini_config_clear 清空配置
  * @param config    ini配置
  * @return  清空成功返回0, 失败返回-1
  */
-extern int ini_config_clear(INI_CONFIG *config);
+extern int ini_config_clear(INI_CONFIG config);
 
 /**
  * @brief ini_config_erase_section 删除配置中指定的节
@@ -59,7 +55,7 @@ extern int ini_config_clear(INI_CONFIG *config);
  * @param section   节, NULL表示无名节
  * @return  删除成功返回0, 失败返回-1
  */
-extern int ini_config_erase_section(INI_CONFIG *config, const char *section);
+extern int ini_config_erase_section(INI_CONFIG config, const char *section);
 
 /**
  * @brief ini_config_erase_key 删除配置中指定的节中的关键字
@@ -68,7 +64,7 @@ extern int ini_config_erase_section(INI_CONFIG *config, const char *section);
  * @param key       关键字
  * @return  删除成功返回0, 失败返回-1
  */
-extern int ini_config_erase_key(INI_CONFIG *config, const char *section,
+extern int ini_config_erase_key(INI_CONFIG config, const char *section,
     const char *key);
 
 /**
@@ -77,7 +73,7 @@ extern int ini_config_erase_key(INI_CONFIG *config, const char *section,
  * @param fp        文件流
  * @return  保存成功返回0, 失败返回-1
  */
-extern int ini_config_save2filestream(INI_CONFIG *config, FILE *fp);
+extern int ini_config_save2filestream(INI_CONFIG config, FILE *fp);
 
 /**
  * @brief ini_config_saveas 将ini配置另存到另一个文件中
@@ -85,19 +81,19 @@ extern int ini_config_save2filestream(INI_CONFIG *config, FILE *fp);
  * @param file      保存ini配置的文件名
  * @return  保存成功返回0, 失败返回-1
  */
-extern int ini_config_saveas(INI_CONFIG *config, const char *file);
+extern int ini_config_saveas(INI_CONFIG config, const char *file);
 
 /**
  * @brief ini_config_save 将ini配置保存到函数ini_config_create打开的文件中
  * @param config    ini配置
  * @return  保存成功返回0, 失败返回-1
  */
-static inline int ini_config_save(INI_CONFIG *config) {
-    return ini_config_saveas(config, config->config_file);
-}
+extern int ini_config_save(INI_CONFIG config);
 
 /**
  * @brief ini_config_release 释放ini数据结构的内存
  * @param config    ini配置
  */
-extern void ini_config_release(INI_CONFIG *config);
+extern void ini_config_release(INI_CONFIG config);
+
+#endif /* __INIPARSER_C_H__ */

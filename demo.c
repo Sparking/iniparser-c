@@ -4,8 +4,8 @@
 
 int main(void)
 {
+    INI_CONFIG config;
     const char *value;
-    INI_CONFIG *config;
 
     config = ini_config_create("test.ini");
     if (config == NULL) {
@@ -28,6 +28,7 @@ int main(void)
         printf("[1:地址] not been set\n");
     }
 
+    ini_config_save(config);
     ini_config_saveas(config, "test1.ini");
     ini_config_erase_key(config, "test section 234", "Nassuraw");
     ini_config_erase_section(config, NULL);
